@@ -63,6 +63,8 @@ func (acc *account) outputPassword() {
 // Возвращает:
 //   - *account (указатель на структуру)
 //   - error (ошибку, если что-то пошло не так)
+//
+// тест
 func newAccount(login, password, urlString string) (*account, error) {
 	// Проверяем логин
 	if login == "" {
