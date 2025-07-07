@@ -1,119 +1,97 @@
 package main
 
 import (
-	"errors"
+	"bufio"
 	"fmt"
-	"math/rand/v2"
 	"net/url"
-	"time"
+	"os"
+	"passwordsaver/account"
+	"strings"
+
+	"github.com/fatih/color"
 )
 
-var LetterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-*!")
-
-type account struct {
-	login    string
-	password string
-	url      string
-}
-
-// Расширенная структура аккаунта с датами (наследует account)
-type accountWithTimeStamp struct {
-	createdAt time.Time
-	updatedAt time.Time
-	account
-}
-
-// МЕТОД ДЛЯ ГЕНЕРАЦИИ ПАРОЛЯ
-func (acc *account) generatePassword(n int) {
-	newGenPassword := make([]rune, n)
-	for i := range newGenPassword {
-		newGenPassword[i] = LetterRunes[rand.IntN(len(LetterRunes))]
-	}
-	acc.password = string(newGenPassword)
-}
-
-// МЕТОД ДЛЯ ВЫВОДА ДАННЫХ
-func (acc *account) outputPassword() {
-	// Просто печатаем содержимое структуры
-	fmt.Println("🔑 Логин:", acc.login)
-	fmt.Println("🔒 Пароль:", acc.password)
-	fmt.Println("🌐 Сайт:", acc.url)
-}
-
-// КОНСТРУКТОР ДЛЯ ОСНОВНОЙ СТРУКТУРЫ (account)
-func newAccount(login, password, urlString string) (*account, error) {
-	// Проверяем логин
-	if login == "" {
-		return nil, errors.New("ЛОГИН НЕ МОЖЕТ БЫТЬ ПУСТЫМ")
-	}
-
-	_, err := url.ParseRequestURI(urlString)
-	if err != nil {
-		return nil, errors.New("НЕПРАВИЛЬНЫЙ URL")
-	}
-
-	newAcc := &account{
-		login:    login,
-		password: password,
-		url:      urlString,
-	}
-
-	if password == "" {
-		newAcc.generatePassword(12)
-	}
-
-	return newAcc, nil
-}
-
-// КОНСТРУКТОР ДЛЯ РАСШИРЕННОЙ СТРУКТУРЫ (accountWithTimeStamp)
-func newAccountWithTimeStamp(login, password, urlString string) (*accountWithTimeStamp, error) {
-	// Те же проверки что и выше
-	if login == "" {
-		return nil, errors.New("ЛОГИН НЕ МОЖЕТ БЫТЬ ПУСТЫМ")
-	}
-
-	_, err := url.ParseRequestURI(urlString)
-	if err != nil {
-		return nil, errors.New("НЕПРАВИЛЬНЫЙ URL")
-	}
-
-	newAcc := &accountWithTimeStamp{
-		account: account{
-			login:    login,
-			password: password,
-			url:      urlString,
-		},
-		createdAt: time.Now(),
-		updatedAt: time.Now(),
-	}
-
-	if password == "" {
-		newAcc.generatePassword(12)
-	}
-
-	return newAcc, nil
-}
-
-// ГЛАВНАЯ ФУНКЦИЯ (точка входа в программу)
 func main() {
-	login := promtData("Введите логин:")
-	password := promtData("Введите пароль (оставьте пустым для автогенерации):")
-	url := promtData("Введите URL сайта:")
+	color.Cyan("Добро пожаловать в менеджер паролей!")
 
-	myAccount, err := newAccountWithTimeStamp(login, password, url)
+Menu:
+	for {
+		variant := getMenu()
+		switch variant {
+		case 1:
+			createAccount()
+		case 2:
+			findAccout()
+		case 3:
+			deleteAccout()
+		default:
+			break Menu
+		}
+	}
+}
+
+func getMenu() int {
+	color.Cyan("----------------------------------------")
+	color.Cyan("Выберите пункт: ")
+	color.Cyan("1. Создать аккаунт")
+	color.Cyan("2. Найти аккаунт")
+	color.Cyan("3. Удалить аккаунт")
+	color.Cyan("4. Выход")
+	color.Cyan("----------------------------------------")
+
+	var userInput int
+	if _, err := fmt.Scan(&userInput); err != nil {
+		color.Red("Ошибка ввода! Введите число от 1 до 4!")
+		bufio.NewReader(os.Stdin).ReadString('\n')
+		return 0
+	}
+	bufio.NewReader(os.Stdin).ReadString('\n')
+	return userInput
+}
+
+func createAccount() {
+	login := promtData("Введите логин:")
+	password := promtData("Введите пароль:")
+	url := promtData("Введите URL:")
+
+	myAccount, err := account.NewAccount(login, password, url)
+
 	if err != nil {
-		fmt.Println("💥 ОШИБКА:", err)
+		fmt.Printf("ОШИБКА: %s\n", err)
 		return
 	}
 
-	myAccount.outputPassword()
-	fmt.Println("⏰ Дата создания:", myAccount.createdAt.Format("2006-01-02 15:04:05"))
+	valult := account.NewVault()
+	valult.AddAccount(*myAccount)
 }
 
-// ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВВОДА ДАННЫХ
 func promtData(prompt string) string {
 	fmt.Print(prompt + " ")
-	var res string
-	fmt.Scanln(&res)
-	return res
+	reader := bufio.NewReader(os.Stdin)
+	res, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Ошибка ввода:", err)
+		return ""
+	}
+	return strings.TrimSpace(strings.Trim(res, "\r\n"))
 }
+
+func findAccout() {
+	// запросить url
+	fmt.Print("Введите URL: ")
+	var urlToFind string
+	fmt.Scan(&urlToFind)
+	_, err := url.ParseRequestURI(urlToFind)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// поиск
+	acc, err := account.FindAccountByURL(account.NewVault(), urlToFind)
+	if err != nil {
+		color.Red("Ошибка")
+	}
+	fmt.Println(acc)
+	// вывод
+}
+
+func deleteAccout() {}
