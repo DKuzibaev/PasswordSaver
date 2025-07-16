@@ -69,7 +69,6 @@ func NewVault(db Db) *ValultWithDb {
 
 // Сохранение и обновление аккаунтов
 func (v *ValultWithDb) save() {
-
 	v.UpdatedAt = time.Now()
 	data, err := v.Vault.ToByteSlice()
 

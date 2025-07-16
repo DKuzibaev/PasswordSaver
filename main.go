@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"passwordsaver/account"
 	"passwordsaver/files"
 	"passwordsaver/output"
-	"strings"
 
 	"github.com/fatih/color"
 )
@@ -18,43 +15,31 @@ func main() {
 	// valult := account.NewVault(cloud.NewCloudDb("https://a.ru"))
 Menu:
 	for {
-		variant := getMenu()
+		variant := promtData([]string{
+			"1. Создать аккаунт",
+			"2. Найти аккаунт",
+			"3. Удалить аккаунт",
+			"4. Выход",
+			"Выберите вариант",
+		})
 		switch variant {
-		case 1:
+		case "1":
 			createAccount(valult)
-		case 2:
+		case "2":
 			findAccout(valult)
-		case 3:
+		case "3":
 			deleteAccout(valult)
 		default:
+			color.Green("Хорошего Вам дня!")
 			break Menu
 		}
 	}
 }
 
-func getMenu() int {
-	color.Cyan("----------------------------------------")
-	color.Cyan("Выберите пункт: ")
-	color.Cyan("1. Создать аккаунт")
-	color.Cyan("2. Найти аккаунт")
-	color.Cyan("3. Удалить аккаунт")
-	color.Cyan("4. Выход")
-	color.Cyan("----------------------------------------")
-
-	var userInput int
-	if _, err := fmt.Scan(&userInput); err != nil {
-		output.PrintError("Ошибка ввода! Введите число от 1 до 4!")
-		bufio.NewReader(os.Stdin).ReadString('\n')
-		return 0
-	}
-	bufio.NewReader(os.Stdin).ReadString('\n')
-	return userInput
-}
-
 func createAccount(valult *account.ValultWithDb) {
-	login := promtData("Введите логин:")
-	password := promtData("Введите пароль:")
-	url := promtData("Введите URL:")
+	login := promtData([]string{"Введите логин"})
+	password := promtData([]string{"Введите пароль"})
+	url := promtData([]string{"Введите URL"})
 
 	myAccount, err := account.NewAccount(login, password, url)
 
@@ -65,19 +50,23 @@ func createAccount(valult *account.ValultWithDb) {
 	valult.AddAccount(*myAccount)
 }
 
-func promtData(prompt string) string {
-	fmt.Print(prompt + " ")
-	reader := bufio.NewReader(os.Stdin)
-	res, err := reader.ReadString('\n')
-	if err != nil {
-		output.PrintError("Неверный формат URL или Логин")
-		return ""
+// Функция вывода с использованием Generic Type
+func promtData[T any](prompt []T) string {
+	for i, line := range prompt {
+		if i == len(prompt)-1 {
+			fmt.Printf("%v: ", line)
+		} else {
+			str := fmt.Sprint(line)
+			color.Cyan(str)
+		}
 	}
-	return strings.TrimSpace(strings.Trim(res, "\r\n"))
+	var res string
+	fmt.Scanln(&res)
+	return res
 }
 
 func findAccout(vault *account.ValultWithDb) {
-	url := promtData("Введите URL для поиска:")
+	url := promtData([]string{"Введите URL для поиска"})
 	accounts, err := vault.FindAccountByURL(url)
 	if err != nil {
 		output.PrintError("Неверный формат URL")
@@ -92,12 +81,11 @@ func findAccout(vault *account.ValultWithDb) {
 }
 
 func deleteAccout(vault *account.ValultWithDb) {
-	url := promtData("Введите URL для удаления:")
+	url := promtData([]string{"Введите URL для удаления"})
 	isDeleted := vault.DeleteAccountByURL(url)
 	if isDeleted {
 		color.Green("Успешно удалено!")
 	} else {
 		output.PrintError("Аккаунт не найден!")
 	}
-
 }
