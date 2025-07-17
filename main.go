@@ -5,9 +5,16 @@ import (
 	"passwordsaver/account"
 	"passwordsaver/files"
 	"passwordsaver/output"
+	"strings"
 
 	"github.com/fatih/color"
 )
+
+var menu = map[string]func(*account.ValultWithDb){
+	"1": createAccount,
+	"2": findAccount,
+	"3": deleteAccount,
+}
 
 func main() {
 	color.Cyan("Добро пожаловать в менеджер паролей!")
@@ -22,17 +29,23 @@ Menu:
 			"4. Выход",
 			"Выберите вариант",
 		})
-		switch variant {
-		case "1":
-			createAccount(valult)
-		case "2":
-			findAccout(valult)
-		case "3":
-			deleteAccout(valult)
-		default:
-			color.Green("Хорошего Вам дня!")
+		menuFunc := menu[variant]
+		if menuFunc == nil {
 			break Menu
 		}
+
+		menuFunc(valult)
+		// switch variant {
+		// case "1":
+		// 	createAccount(valult)
+		// case "2":
+		// 	findAccount(valult)
+		// case "3":
+		// 	deleteAccount(valult)
+		// default:
+		// 	color.Green("Хорошего Вам дня!")
+		// 	break Menu
+		// }
 	}
 }
 
@@ -65,11 +78,12 @@ func promtData[T any](prompt []T) string {
 	return res
 }
 
-func findAccout(vault *account.ValultWithDb) {
+func findAccount(vault *account.ValultWithDb) {
 	url := promtData([]string{"Введите URL для поиска"})
-	accounts, err := vault.FindAccountByURL(url)
+	accounts, err := vault.FindAccounts(url, checkUrl)
+
 	if err != nil {
-		output.PrintError("Неверный формат URL")
+		output.PrintError("Неверный формат URL или Логин")
 		return
 	}
 	if len(accounts) == 0 {
@@ -80,7 +94,15 @@ func findAccout(vault *account.ValultWithDb) {
 	}
 }
 
-func deleteAccout(vault *account.ValultWithDb) {
+func checkUrl(acc account.Account, str string) bool {
+	return strings.Contains(acc.Url, str)
+}
+
+func checkLogin(acc account.Account, str string) bool {
+	return strings.Contains(acc.Login, str)
+}
+
+func deleteAccount(vault *account.ValultWithDb) {
 	url := promtData([]string{"Введите URL для удаления"})
 	isDeleted := vault.DeleteAccountByURL(url)
 	if isDeleted {

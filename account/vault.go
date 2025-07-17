@@ -2,7 +2,6 @@ package account
 
 import (
 	"encoding/json"
-	"net/url"
 	"passwordsaver/output"
 	"strings"
 	"time"
@@ -94,16 +93,11 @@ func (v *Vault) ToByteSlice() ([]byte, error) {
 	return file, nil
 }
 
-// Поиск аккаунта
-func (v *ValultWithDb) FindAccountByURL(urlString string) ([]Account, error) {
+// Поиск аккаунта по URL
+func (v *ValultWithDb) FindAccounts(str string, cheker func(Account, string) bool) ([]Account, error) {
 	var accounts []Account
-	_, err := url.ParseRequestURI(urlString)
-
-	if err != nil {
-		return nil, err
-	}
 	for _, acc := range v.Accounts {
-		isMatch := strings.Contains(acc.Url, urlString)
+		isMatch := cheker(acc, str)
 		if isMatch {
 			accounts = append(accounts, acc)
 		}
