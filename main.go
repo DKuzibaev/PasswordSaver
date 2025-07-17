@@ -80,7 +80,9 @@ func promtData[T any](prompt []T) string {
 
 func findAccount(vault *account.ValultWithDb) {
 	url := promtData([]string{"Введите URL для поиска"})
-	accounts, err := vault.FindAccounts(url, checkUrl)
+	accounts, err := vault.FindAccounts(url, func(acc account.Account, str string) bool {
+		return strings.Contains(acc.Url, str)
+	})
 
 	if err != nil {
 		output.PrintError("Неверный формат URL или Логин")
@@ -95,7 +97,7 @@ func findAccount(vault *account.ValultWithDb) {
 }
 
 func checkUrl(acc account.Account, str string) bool {
-	return strings.Contains(acc.Url, str)
+
 }
 
 func checkLogin(acc account.Account, str string) bool {
