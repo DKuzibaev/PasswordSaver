@@ -12,8 +12,9 @@ import (
 
 var menu = map[string]func(*account.ValultWithDb){
 	"1": createAccount,
-	"2": findAccount,
-	"3": deleteAccount,
+	"2": findAccountByULR,
+	"3": findAccountByLogin,
+	"4": deleteAccount,
 }
 
 func main() {
@@ -24,9 +25,10 @@ Menu:
 	for {
 		variant := promtData([]string{
 			"1. Создать аккаунт",
-			"2. Найти аккаунт",
-			"3. Удалить аккаунт",
-			"4. Выход",
+			"2. Найти аккаунт URL",
+			"3. Найти аккаунт по Логину",
+			"4. Удалить аккаунт",
+			"5. Выход",
 			"Выберите вариант",
 		})
 		menuFunc := menu[variant]
@@ -78,30 +80,35 @@ func promtData[T any](prompt []T) string {
 	return res
 }
 
-func findAccount(vault *account.ValultWithDb) {
+func findAccountByULR(vault *account.ValultWithDb) {
 	url := promtData([]string{"Введите URL для поиска"})
 	accounts, err := vault.FindAccounts(url, func(acc account.Account, str string) bool {
 		return strings.Contains(acc.Url, str)
 	})
-
-	if err != nil {
-		output.PrintError("Неверный формат URL или Логин")
-		return
-	}
-	if len(accounts) == 0 {
-		output.PrintError("Аккаунт не найден!")
-	}
-	for _, acc := range accounts {
-		acc.Output()
-	}
+	NotFound(accounts, err)
 }
 
-func checkUrl(acc account.Account, str string) bool {
-
+func findAccountByLogin(vault *account.ValultWithDb) {
+	login := promtData([]string{"Введите Логин для поиска"})
+	accounts, err := vault.FindAccounts(login, func(acc account.Account, str string) bool {
+		return strings.Contains(acc.Login, str)
+	})
+	NotFound(accounts, err)
 }
 
-func checkLogin(acc account.Account, str string) bool {
-	return strings.Contains(acc.Login, str)
+
+func NotFound(accs []account.Account, err error) { // Изменили тип на срез аккаунтов
+    if err != nil {
+        output.PrintError("Неверный формат URL или Логин")
+        return
+    }
+    if len(accs) == 0 {
+        output.PrintError("Аккаунт не найден!")
+        return // Добавили return, чтобы не выводить пустой список
+    }
+    for _, acc := range accs {
+        acc.Output()
+    }
 }
 
 func deleteAccount(vault *account.ValultWithDb) {
