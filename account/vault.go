@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-// Это мой интерфейс (либо провайдер) по сути каждый интерфейс который с ним будет связан должен в обязательном порядке его создать
-// не нужно прям расписывать как эти методы должны работать, просто укажи что метод интерфейса должен вернуть или получить как в примере ниже!
-// Важный момент интерфейс не надо явно связывать к пакетом или структурой!
-
-// Интерфейсы можено разбивать так же как и структуры и докидывать в другой интерфейс
 type ByteReader interface {
 	Read() ([]byte, error)
 }
@@ -121,31 +116,3 @@ func (v *ValultWithDb) DeleteAccountByURL(urlString string) bool {
 	v.save()
 	return isDeleted
 }
-
-/*
-Удаление аккаунта по индексу, но лучшее так не делать потому что range может наебнуться
-func (v *Vault) DeleteAccountByURL(urlString string) bool {
-	var accounts []Account
-	isDeleted := false
-	for i, acc := range v.Accounts {
-		isMatch := strings.Contains(acc.Url, urlString)
-		if !isMatch {
-			v.Accounts = append(v.Accounts[:i], v.Accounts[i+1:]...)
-			accounts = append(accounts, acc)
-			continue
-		}
-		isDeleted = true
-	}
-	v.Accounts = accounts
-	v.UpdatedAt = time.Now()
-	data, err := v.ToByteSlice()
-
-	if err != nil {
-		color.Red("Не удалось переобразовать")
-	}
-
-	files.WriteFile(data, "data.json")
-
-	return isDeleted
-}
-*/
