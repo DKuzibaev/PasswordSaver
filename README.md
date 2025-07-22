@@ -31,7 +31,7 @@
         
         git clone https://github.com/DKuzibaev/PasswordSaver.git
         cd PasswordSaver
-        ```
+        
 - Создайте файл .env в папке configs с необходимыми переменными окружения:
     Сгенерируйте ключ шифрования (256 бит) по ссылке: https://acte.ltd/utils/randomkeygen
     Скопируйте сгенерированный ключ и добавьте его в файл configs/.env в следующем формате:
