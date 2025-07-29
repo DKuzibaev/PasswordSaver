@@ -15,19 +15,23 @@ import (
 
 var menu = map[string]func(*account.ValultWithDb){
 	"1": createAccount,
-	"2": findAccountByULR,
-	"3": findAccountByLogin,
-	"4": deleteAccount,
-	"5": findLenOfAccounts,
+	"2": findAccountByTag,
+	"3": findAccountByULR,
+	"4": findAccountByLogin,
+	"5": deleteAccount,
+	"6": findLenOfAccounts,
+	"7": showAllAccounts,
 }
 
 var menuVariants = []string{
 	"1. Создать аккаунт",
-	"2. Найти аккаунт URL",
-	"3. Найти аккаунт по Логину",
-	"4. Удалить аккаунт",
-	"5. Показать количество сохранённых аккаунтов",
-	"6. Выход",
+	"2. Найти аккаунт по Тегу",
+	"3. Найти аккаунт URL",
+	"4. Найти аккаунт по Логину",
+	"5. Удалить аккаунт",
+	"6. Показать количество сохранённых аккаунтов",
+	"7. Показать все аккаунты",
+	"8. Выход",
 	"Выберите вариант",
 }
 
@@ -65,8 +69,8 @@ func createAccount(valult *account.ValultWithDb) {
 	login := promtData("Введите логин")
 	password := promtData("Введите пароль")
 	url := promtData("Введите URL")
-
-	myAccount, err := account.NewAccount(login, password, url)
+	tag := promtData("Введите тег")
+	myAccount, err := account.NewAccount(login, password, url, tag)
 
 	if err != nil {
 		output.PrintError("Неверный формат URL или Логин")
@@ -88,6 +92,31 @@ func promtData[T string](prompt ...T) string {
 	var res string
 	fmt.Scanln(&res)
 	return res
+}
+
+func showAllAccounts(vault *account.ValultWithDb) {
+	acc, err := vault.ShowAll()
+	if err != nil {
+		NotFound(acc, err)
+	}
+
+	for _, item := range acc {
+		color.Cyan("------------------------")
+		color.Green(item.Login)
+		color.Green(item.Url)
+		color.Green(item.Password)
+		color.Green(item.Tag)
+		color.Cyan("------------------------")
+	}
+
+}
+
+func findAccountByTag(vault *account.ValultWithDb) {
+	tag := promtData("Введите Тег для поиска")
+	accounts, err := vault.FindAccounts(tag, func(acc account.Account, str string) bool {
+		return strings.Contains(acc.Tag, str)
+	})
+	NotFound(accounts, err)
 }
 
 func findAccountByULR(vault *account.ValultWithDb) {

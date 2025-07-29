@@ -15,6 +15,7 @@ type Account struct {
 	Login     string    `json:"login"` // Это структурыне теги для json
 	Password  string    `json:"password"`
 	Url       string    `json:"url"`
+	Tag       string    `json:"tag"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -33,10 +34,11 @@ func (acc *Account) Output() {
 	color.Green("Ваш логин: " + acc.Login)
 	color.Red("Ваш пароль: " + acc.Password)
 	color.Yellow("Ваш URL: " + acc.Url)
+	color.Magenta("Ваш тег: " + acc.Tag)
 }
 
 // Функция конструктор структуры
-func NewAccount(login, password, urlString string) (*Account, error) {
+func NewAccount(login, password, urlString, tagAcc string) (*Account, error) {
 
 	if login == "" {
 		return nil, errors.New("INVALID LOGIN")
@@ -51,6 +53,7 @@ func NewAccount(login, password, urlString string) (*Account, error) {
 		Login:     login,
 		Password:  password,
 		Url:       urlString,
+		Tag:       tagAcc,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

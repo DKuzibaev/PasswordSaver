@@ -141,3 +141,12 @@ func (v *ValultWithDb) DeleteAccountByURL(urlString string) bool {
 	v.save()
 	return isDeleted
 }
+
+// показать все аккаунты
+func (v *ValultWithDb) ShowAll() ([]Account, error) {
+	var accounts []Account
+	for _, acc := range v.Accounts {
+		accounts = append(accounts, acc)
+	}
+	return accounts, nil
+}
