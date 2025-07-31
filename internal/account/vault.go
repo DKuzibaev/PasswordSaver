@@ -68,7 +68,7 @@ func NewVault(db Db, enc encrypter.Encrypter) *ValultWithDb {
 	var valult Vault
 	err = json.Unmarshal(decryptedData, &valult)
 	if err != nil {
-		output.PrintError("Не удалось разобрать файл data.vault")
+		output.PrintError("не удалось разобрать файл data.vault")
 		return &ValultWithDb{
 			Vault: Vault{
 				Accounts:  []Account{},
@@ -149,4 +149,19 @@ func (v *ValultWithDb) ShowAll() ([]Account, error) {
 		accounts = append(accounts, acc)
 	}
 	return accounts, nil
+}
+
+// Группировка аккаунтов по тегам
+func (v *ValultWithDb) GroupByTag() map[string][]Account {
+	// создаём пустую карту: ключ — тег, значение — список аккаунтов
+	tagGroup := make(map[string][]Account)
+
+	// бежим по всем аккаунтам в хранилище
+	for _, acc := range v.Accounts {
+		// добавляем аккаунт в нужную группу по тегу
+		tagGroup[acc.Tag] = append(tagGroup[acc.Tag], acc)
+	}
+
+	// возвращаем сгруппированные аккаунты
+	return tagGroup
 }

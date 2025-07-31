@@ -20,7 +20,9 @@ var menu = map[string]func(*account.ValultWithDb){
 	"4": findAccountByLogin,
 	"5": deleteAccount,
 	"6": findLenOfAccounts,
-	"7": showAllAccounts,
+	"7": groupByTags,
+	"8": showTagGroup,
+	"9": showAllAccounts,
 }
 
 var menuVariants = []string{
@@ -30,8 +32,10 @@ var menuVariants = []string{
 	"4. Найти аккаунт по Логину",
 	"5. Удалить аккаунт",
 	"6. Показать количество сохранённых аккаунтов",
-	"7. Показать все аккаунты",
-	"8. Выход",
+	"7. Группировать по тегам",
+	"8. Показать все аккаунты по группам",
+	"9. Показать все аккаунты",
+	"10. Выход",
 	"Выберите вариант",
 }
 
@@ -101,12 +105,9 @@ func showAllAccounts(vault *account.ValultWithDb) {
 	}
 
 	for _, item := range acc {
-		color.Cyan("------------------------")
-		color.Green(item.Login)
-		color.Green(item.Url)
-		color.Green(item.Password)
-		color.Green(item.Tag)
-		color.Cyan("------------------------")
+		color.Cyan("========================")
+		item.Output()
+		color.Cyan("========================")
 	}
 
 }
@@ -165,4 +166,29 @@ func findLenOfAccounts(vault *account.ValultWithDb) {
 		return
 	}
 	color.Green("Количество аккаунтов: %d", len(vault.Accounts))
+}
+
+func groupByTags(vault *account.ValultWithDb) {
+	// вызываем метод GroupByTag, он вернёт карту: {тег -> список аккаунтов}
+	tagGroups := vault.GroupByTag()
+
+	// если групп нет, выводим сообщение
+	if len(tagGroups) == 0 {
+		output.PrintError("Нет аккаунтов для группировки!")
+		return
+	}
+
+	color.Green("Группировка успешно выполнена!")
+}
+
+func showTagGroup(vault *account.ValultWithDb) {
+	tagGroups := vault.GroupByTag()
+	// бежим по каждому тегу и его аккаунтам
+	for tag, accounts := range tagGroups {
+		color.Cyan("========== [%s] (%d аккаунтов) ==========", tag, len(accounts))
+		for _, acc := range accounts {
+			// вызываем метод acc.Output(), который красиво печатает логин, пароль, URL и тег
+			acc.Output()
+		}
+	}
 }
